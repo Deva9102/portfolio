@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Devadarshini Pazhanivel Thenmozhi</title>
+<link href="https://fonts.googleapis.com/css2?family=Circular+Std:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1DB954;
+    --green-dim: #1aa34a;
+    --black: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --white: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Space Mono', monospace;
+    background: var(--black);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ── SIDEBAR PLAYER ── */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 240px;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    border-right: 1px solid var(--border);
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .spotify-icon {
+    width: 32px; height: 32px;
+  }
+
+  .sidebar-logo span {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -0.5px;
+  }
+
+  .nav-section {
+    padding: 16px 12px;
+  }
+
+  .nav-label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    padding: 8px 8px 4px;
+    text-transform: uppercase;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+
+  .nav-item:hover, .nav-item.active {
+    background: var(--surface2);
+    color: var(--white);
+  }
+
+  .nav-item.active { color: var(--green); }
+
+  .nav-icon {
+    width: 18px; height: 18px;
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+
+  .nav-item:hover .nav-icon,
+  .nav-item.active .nav-icon { opacity: 1; }
+
+  /* Now Playing */
+  .now-playing {
+    margin-top: auto;
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    background: #0a0a0a;
+  }
+
+  .np-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .np-track {
+    font-size: 12px;
+    color: var(--white);
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .np-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: visible;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    width: 42%;
+    position: relative;
+    transition: width 0.1s;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -4px; top: -3px;
+    width: 9px; height: 9px;
+    background: var(--white);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .progress-bar:hover .progress-fill::after { opacity: 1; }
+
+  .np-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 10px;
+  }
+
+  .ctrl-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 0.15s, transform 0.1s;
+    display: flex;
+  }
+
+  .ctrl-btn:hover { color: var(--white); transform: scale(1.1); }
+
+  .ctrl-btn.play {
+    width: 32px; height: 32px;
+    background: var(--white);
+    border-radius: 50%;
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ctrl-btn.play:hover { background: var(--green); color: var(--white); transform: scale(1.05); }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    margin-left: 240px;
+    min-height: 100vh;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    position: sticky;
+    top: 0;
+    background: rgba(13,17,23,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 50;
+  }
+
+  .topbar-left {
+    display: flex;
+    gap: 6px;
+  }
+
+  .nav-circle {
+    width: 28px; height: 28px;
+    background: var(--surface2);
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    font-size: 14px;
+  }
+
+  .nav-circle:hover { background: var(--border); color: var(--white); }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .github-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 12px;
+    transition: all 0.15s;
+  }
+
+  .github-link:hover {
+    background: var(--border);
+    color: var(--white);
+    border-color: var(--muted);
+  }
+
+  .avatar {
+    width: 32px; height: 32px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #000;
+    cursor: pointer;
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    padding: 40px 40px;
+    max-width: 1200px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .section-number {
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 2px;
+  }
+
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -0.5px;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    margin-left: 8px;
+  }
+
+  /* ── HERO ── */
+  #home {
+    padding-top: 40px;
+    padding-bottom: 40px;
+    position: relative;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(29,185,84,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(29,185,84,0.5); }
+    50% { box-shadow: 0 0 0 6px rgba(29,185,84,0); }
+  }
+
+  .hero-name {
+    font-size: clamp(48px, 6vw, 80px);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--white);
+    letter-spacing: -3px;
+    margin-bottom: 12px;
+  }
+
+  .hero-name .green { color: var(--green); }
+
+  .hero-role {
+    font-size: 18px;
+    color: var(--muted);
+    margin-bottom: 32px;
+    letter-spacing: 0;
+  }
+
+  .hero-role code {
+    color: var(--green);
+    background: rgba(29,185,84,0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .hero-btns {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: var(--green);
+    color: #000;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: #1ed760;
+    transform: scale(1.04);
+  }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: transparent;
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .btn-outline:hover {
+    border-color: var(--muted);
+    background: var(--surface2);
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 40px;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .stat-item { }
+
+  .stat-num {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -1px;
+  }
+
+  .stat-num span { color: var(--green); }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* ── ABOUT ── */
+    .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 48px;
+    align-items: start;
+    }
+
+  .about-text p {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .about-text p strong { color: var(--text); }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .skill-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text);
+    transition: all 0.15s;
+  }
+
+  .skill-tag:hover {
+    border-color: var(--green);
+    background: rgba(29,185,84,0.05);
+    color: var(--green);
+  }
+
+  .skill-dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .lang-bar-section {
+    margin-top: 24px;
+  }
+
+  .lang-bar-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .lang-bar {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .lang-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+
+  /* ── PROJECTS ── */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+
+  .project-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+  }
+
+  .project-card:hover {
+    border-color: var(--green);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(29,185,84,0.12);
+  }
+
+  .project-banner {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .project-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, var(--surface));
+  }
+
+  .project-body {
+    padding: 16px 20px 20px;
+  }
+
+  .project-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+
+  .project-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .project-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .project-lang {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .lang-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  .project-stars {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .tag {
+    padding: 3px 10px;
+    background: rgba(29,185,84,0.1);
+    color: var(--green);
+    border-radius: 20px;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── RESUME ── */
+  .resume-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+
+  .timeline { }
+
+  .timeline-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 32px;
+    bottom: -24px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .timeline-item:last-child::before { display: none; }
+
+  .timeline-dot {
+    width: 32px; height: 32px;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .timeline-item:hover .timeline-dot {
+    border-color: var(--green);
+    background: rgba(29,185,84,0.1);
+  }
+
+  .timeline-content { flex: 1; }
+
+  .tl-role {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 2px;
+  }
+
+  .tl-company {
+    font-size: 12px;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+
+  .tl-date {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .tl-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .resume-download-card {
+    margin-top: 32px;
+    padding: 24px;
+    background: linear-gradient(135deg, rgba(29,185,84,0.1), rgba(29,185,84,0.03));
+    border: 1px solid rgba(29,185,84,0.3);
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .resume-download-card p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* ── CONTACT ── */
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  .contact-info h3 {
+    font-size: 20px;
+    color: var(--white);
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .contact-info p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .contact-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .contact-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+
+  .contact-link:hover {
+    border-color: var(--green);
+    color: var(--white);
+    background: rgba(29,185,84,0.05);
+  }
+
+  .contact-icon {
+    width: 36px; height: 36px;
+    background: var(--surface2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .form-group { }
+
+  .form-label {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 11px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+
+  .form-input:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(29,185,84,0.1);
+  }
+
+  textarea.form-input {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-left: 240px;
+    border-top: 1px solid var(--border);
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .footer-left { }
+  .footer-right { color: var(--green); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border); }
+
+  /* ── PLAYLIST CHIP ── */
+  .playlist-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+
+  .chip {
+    padding: 7px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .chip:hover, .chip.active {
+    background: var(--white);
+    color: #000;
+    border-color: var(--white);
+  }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main, .footer { margin-left: 0; }
+    section { padding: 40px 20px; }
+    .about-grid, .resume-section, .contact-grid { grid-template-columns: 1fr; }
+    .hero-name { font-size: 42px; }
+    .stats-row { gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+<div class="sidebar-logo">
+  <svg class="spotify-icon" ...>...</svg>
+  <span>Deva.ai</span>
+</div>
+
+<div style="padding: 16px 20px 0; display:flex; flex-direction:column; align-items:center; text-align:center;">
+  <img 
+    src="deva.jpeg" 
+    alt="Devadarshini" 
+    style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid var(--green); margin-bottom:10px;"
+    onerror="this.style.display='none'; document.getElementById('avatarFallback').style.display='flex';"
+  >
+  <div id="avatarFallback" style="display:none; width:80px; height:80px; border-radius:50%; background:var(--green); color:#000; font-size:22px; font-weight:700; align-items:center; justify-content:center; margin-bottom:10px;">DP</div>
+  <div style="font-size:13px; font-weight:700; color:var(--white);">Devadarshini</div>
+  <div style="font-size:10px; color:var(--green); letter-spacing:1px; margin-top:2px;">AI / ML Engineer</div>
+</div>
+
+  <div class="nav-section">
+    <div class="nav-label">Browse</div>
+    <a href="#home" class="nav-item active" onclick="setActive(this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      Home
+    </a>
+    <a href="#about" class="nav-item" onclick="setActive(this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      About Me
+    </a>
+    <a href="#projects" class="nav-item" onclick="setActive(this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z"/></svg>
+      Projects
+    </a>
+    <a href="#publications" class="nav-item" onclick="setActive(this)">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+    Publications
+    </a>
+    <a href="#resume" class="nav-item" onclick="setActive(this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v2H8zm0-4h8v2H8zm0-4h5v2H8z"/></svg>
+      Resume
+    </a>
+    <a href="#contact" class="nav-item" onclick="setActive(this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      Contact
+    </a>
+  </div>
+
+<div class="nav-section" style="margin-top: 8px;">
+  <div class="nav-label">Quick Links</div>
+  <a href="https://linkedin.com/in/YOUR_LINKEDIN" target="_blank" class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+    LinkedIn
+  </a>
+  <a href="https://github.com/YOUR_GITHUB" target="_blank" class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+    GitHub
+  </a>
+  <a href="mailto:pazhanivelthenmozh.d@northeastern.edu" class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+    Email Me
+  </a>
+  <a href="DevadarshiniPazhanivelThenmozhiResume.pdf" download class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+    Resume PDF
+  </a>
+</div>
+  <!-- Now Playing -->
+  <div class="now-playing">
+    <div class="np-label">▶ Now Coding</div>
+    <div class="np-track">Portfolio v3.0</div>
+    <div class="np-sub">by Devadarshini · 2026</div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;">
+      <span id="currentTime">1:43</span><span>4:05</span>
+    </div>
+    <div class="np-controls">
+      <button class="ctrl-btn" title="Shuffle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+      </button>
+      <button class="ctrl-btn" title="Previous">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+      </button>
+      <button class="ctrl-btn play" id="playBtn" title="Play/Pause" onclick="togglePlay()">
+        <svg id="playIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="ctrl-btn" title="Next">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      </button>
+      <button class="ctrl-btn" title="Repeat">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="nav-circle">‹</button>
+      <button class="nav-circle">›</button>
+    </div>
+    <div class="topbar-right">
+      <a href="https://github.com" target="_blank" class="github-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        GitHub
+      </a>
+      <div class="avatar">DPT</div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <section id="home">
+    <div class="hero-bg"></div>
+    <div class="hero-tag">
+      <div class="status-dot"></div>
+      Open for Summer Internships & Full-Time Roles · 2026
+    </div>
+    <div class="hero-name"> <span class="green">Devadarshini</span><br>Pazhanivel Thenmozhi</div>
+    <div class="hero-role">
+      AI / ML Engineer &amp; <code>{ LLMs · NLP · GenAI · CV }</code>
+    </div>
+    <div class="hero-btns">
+      <a href="#projects" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+        View Projects
+      </a>
+      <a href="#contact" class="btn-outline">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        Contact Me
+      </a>
+    </div>
+    <div class="stats-row">
+       <div class="stat-item">
+        <div class="stat-num">3<span></span></div>
+        <div class="stat-label">Internships</div>
+        </div>
+        <div class="stat-item">
+        <div class="stat-num">10<span>+</span></div>
+        <div class="stat-label">AI Projects</div>
+        </div>
+        <div class="stat-item">
+        <div class="stat-num">4<span></span></div>
+        <div class="stat-label">Publications</div>
+        </div>
+        <div class="stat-item">
+        <div class="stat-num">3<span></span></div>
+        <div class="stat-label">Countries</div>
+        </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="section-header">
+      <span class="section-number">01</span>
+      <h2>About Me</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="about-grid">
+      <div class="about-text">
+        <p>Hey! I'm <strong>Devadarshini</strong>, an AI/ML engineer pursuing my Master's in Artificial Intelligence at <strong>Northeastern University, Boston</strong>. I build production-grade AI systems — from RAG pipelines to transformer fine-tuning to real-time computer vision.</p>
+        <p>I've shipped AI at <strong>ProjectPathAI</strong>, researched at <strong>NUS Singapore</strong>, won <strong>2nd place at Google Cambridge</strong>, and published <strong>4 research papers</strong> across IEEE and international conferences.</p>
+        <p>When I'm not training models, I'm on <strong>GitHub</strong> pushing commits, deep in a <strong>Spotify rabbit hole</strong>, watching <strong>psychological thrillers</strong> or the occasional <strong>romcom</strong>, or finding the next problem worth solving with AI.</p>
+        <div class="lang-bar-section">
+          <div style="font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">Languages</div>
+            <div class="lang-bar-label"><span>Python</span><span>95%</span></div>
+            <div class="lang-bar"><div class="lang-fill" style="width:95%;background:#3572A5;"></div></div>
+            <div class="lang-bar-label"><span>SQL</span><span>80%</span></div>
+            <div class="lang-bar"><div class="lang-fill" style="width:80%;background:#e38c00;"></div></div>
+            <div class="lang-bar-label"><span>Java</span><span>65%</span></div>
+            <div class="lang-bar"><div class="lang-fill" style="width:65%;background:#b07219;"></div></div>
+            <div class="lang-bar-label"><span>R</span><span>75%</span></div>
+            <div class="lang-bar"><div class="lang-fill" style="width:55%;background:#198ce7;"></div></div>
+      </div>
+      </div>
+        <div>
+        <!-- AI & ML -->
+        <div style="font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">AI & Machine Learning</div>
+        <div class="skills-grid" style="margin-bottom:20px;">
+            <div class="skill-tag"><span class="skill-dot"></span>LLMs / Transformers</div>
+            <div class="skill-tag"><span class="skill-dot"></span>RAG / LangChain</div>
+            <div class="skill-tag"><span class="skill-dot"></span>LangGraph</div>
+            <div class="skill-tag"><span class="skill-dot"></span>Deep Learning</div>
+            <div class="skill-tag"><span class="skill-dot"></span>NLP</div>
+            <div class="skill-tag"><span class="skill-dot"></span>Computer Vision</div>
+            <div class="skill-tag"><span class="skill-dot"></span>Explainable AI</div>
+            <div class="skill-tag"><span class="skill-dot"></span>Reinforcement Learning</div>
+        </div>
+
+  <!-- Libraries -->
+  <div style="font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">Libraries & Frameworks</div>
+  <div class="skills-grid" style="margin-bottom:20px;">
+    <div class="skill-tag"><span class="skill-dot"></span>PyTorch</div>
+    <div class="skill-tag"><span class="skill-dot"></span>TensorFlow</div>
+    <div class="skill-tag"><span class="skill-dot"></span>Hugging Face</div>
+    <div class="skill-tag"><span class="skill-dot"></span>Sentence-Transformers</div>
+    <div class="skill-tag"><span class="skill-dot"></span>scikit-learn</div>
+    <div class="skill-tag"><span class="skill-dot"></span>NumPy / Pandas</div>
+    <div class="skill-tag"><span class="skill-dot"></span>FastAPI / Flask</div>
+    <div class="skill-tag"><span class="skill-dot"></span>Streamlit</div>
+  </div>
+
+  <!-- Platforms & Tools -->
+  <div style="font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">Platforms & Tools</div>
+  <div class="skills-grid">
+    <div class="skill-tag"><span class="skill-dot"></span>Docker / Cloud Run</div>
+    <div class="skill-tag"><span class="skill-dot"></span>Google Cloud / AWS</div>
+    <div class="skill-tag"><span class="skill-dot"></span>BigQuery / Airflow</div>
+    <div class="skill-tag"><span class="skill-dot"></span>Redis / FAISS</div>
+    <div class="skill-tag"><span class="skill-dot"></span>MLflow / Git</div>
+    <div class="skill-tag"><span class="skill-dot"></span>Vertex AI</div>
+    <div class="skill-tag"><span class="skill-dot"></span>Jupyter / VS Code</div>
+    <div class="skill-tag"><span class="skill-dot"></span>GitHub</div>
+  </div>
+</div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <div class="section-header">
+      <span class="section-number">02</span>
+      <h2>Projects</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="playlist-chips">
+    <div class="chip active" onclick="filterChip(this,'all')">All</div>
+    <div class="chip" onclick="filterChip(this,'aiml')">AI / ML</div>
+    <div class="chip" onclick="filterChip(this,'genai')">GenAI / RAG</div>
+    <div class="chip" onclick="filterChip(this,'nlp')">NLP</div>
+    <div class="chip" onclick="filterChip(this,'cv')">Computer Vision</div>
+    <div class="chip" onclick="filterChip(this,'data')">Data Engineering</div>
+    </div>
+
+<div class="projects-grid">
+
+  <!-- 1 -->
+  <a href="#" class="project-card" data-cat="aiml genai data">
+    <div class="project-banner" style="background:linear-gradient(135deg,#0c1a0c,#1a3a1a);">🏙️</div>
+    <div class="project-body">
+      <div class="project-name">Boston 311 AI Dashboard & Chatbot</div>
+      <div class="project-desc">Fine-tuned sqlcoder-7b-2 with QLoRA + FAISS RAG for natural-language access to 1M+ city service records. Scalable pipelines via Airflow & BigQuery. 🥈 2nd Place — Google Cambridge.</div>
+      <div class="project-tags">
+        <span class="tag">BigQuery</span>
+        <span class="tag">FastAPI</span>
+        <span class="tag">Airflow</span>
+        <span class="tag">Docker</span>
+      </div>
+      <div class="project-meta" style="margin-top:12px;">
+        <div class="project-lang"><span class="lang-dot" style="background:#3572A5;"></span>Python</div>
+        <div class="project-stars">🏆 Google Prize</div>
+      </div>
+    </div>
+  </a>
+
+  <!-- 2 -->
+  <a href="#" class="project-card" data-cat="aiml nlp genai">
+    <div class="project-banner" style="background:linear-gradient(135deg,#0d1117,#1a2a1a);">🧠</div>
+    <div class="project-body">
+      <div class="project-name">NL2SQL — Retrieval-Augmented T5</div>
+      <div class="project-desc">Fine-tuned T5-base on Spider dataset with RAG-powered schema retrieval. Achieved 54.96% execution accuracy; 73.34% on simple queries with FAISS + LangChain pipeline.</div>
+      <div class="project-tags">
+        <span class="tag">PyTorch</span>
+        <span class="tag">LangChain</span>
+        <span class="tag">FAISS</span>
+        <span class="tag">Streamlit</span>
+      </div>
+      <div class="project-meta" style="margin-top:12px;">
+        <div class="project-lang"><span class="lang-dot" style="background:#3572A5;"></span>Python</div>
+        <div class="project-stars">⭐ NLP</div>
+      </div>
+    </div>
+  </a>
+
+  <!-- 3 -->
+  <a href="#" class="project-card" data-cat="aiml nlp">
+    <div class="project-banner" style="background:linear-gradient(135deg,#1a0d2e,#2d1a4a);">📄</div>
+    <div class="project-body">
+      <div class="project-name">Candidate Recommendation Engine</div>
+      <div class="project-desc">AI resume ranker using BERT NER, Sentence-Transformers, and hybrid scoring (semantic, keywords, experience, education). Evaluates 50+ resumes per run with explainable insights.</div>
+      <div class="project-tags">
+        <span class="tag">Transformers</span>
+        <span class="tag">Sentence-BERT</span>
+        <span class="tag">Explainable AI</span>
+      </div>
+      <div class="project-meta" style="margin-top:12px;">
+        <div class="project-lang"><span class="lang-dot" style="background:#3572A5;"></span>Python</div>
+        <div class="project-stars">⭐ NLP</div>
+      </div>
+    </div>
+  </a>
+
+  <!-- 4 -->
+  <a href="#" class="project-card" data-cat="aiml ml">
+    <div class="project-banner" style="background:linear-gradient(135deg,#1a1a0d,#2a2a1a);">👶</div>
+    <div class="project-body">
+      <div class="project-name">Fetal Health Risk Prediction</div>
+      <div class="project-desc">Custom continuous risk score (0–100) using PCA, Ridge Regression, Random Forest, XGBoost + SHAP explainability. KMeans & Hierarchical Clustering with UMAP</div>
+      <div class="project-tags">
+        <span class="tag">XGBoost</span>
+        <span class="tag">SHAP</span>
+        <span class="tag">UMAP</span>
+        <span class="tag">PCA</span>
+      </div>
+      <div class="project-meta" style="margin-top:12px;">
+        <div class="project-lang"><span class="lang-dot" style="background:#3572A5;"></span>Python</div>
+        <div class="project-stars">⭐ ML</div>
+      </div>
+    </div>
+  </a>
+
+  <!-- 5 -->
+  <a href="#" class="project-card" data-cat="aiml cv">
+    <div class="project-banner" style="background:linear-gradient(135deg,#1a0c0c,#3a1a1a);">⚽</div>
+    <div class="project-body">
+      <div class="project-name">Soccer Highlight Generator</div>
+      <div class="project-desc">ResNet50 + 3-layer GRU architecture for event detection (goals, fouls, shots) on SoccerNet. Sliding window clip selection stitches a 5-minute highlight reel automatically.</div>
+      <div class="project-tags">
+        <span class="tag">ResNet50</span>
+        <span class="tag">GRU</span>
+        <span class="tag">PyTorch</span>
+        <span class="tag">OpenCV</span>
+      </div>
+      <div class="project-meta" style="margin-top:12px;">
+        <div class="project-lang"><span class="lang-dot" style="background:#3572A5;"></span>Python</div>
+        <div class="project-stars">⭐ CV</div>
+      </div>
+    </div>
+  </a>
+
+
+  <!-- 6 -->
+  <a href="#" class="project-card" data-cat="aiml cv">
+    <div class="project-banner" style="background:linear-gradient(135deg,#0d1117,#1a1a3e);">🖼️</div>
+    <div class="project-body">
+      <div class="project-name">Real-Time Image Captioning & TTS</div>
+      <div class="project-desc">ResNet50/VGG16 + LSTM captioning system with GloVe 300D embeddings on Flickr8k/30k. Multi-language TTS for accessibility. BLEU score evaluated — built for visually impaired users.</div>
+      <div class="project-tags">
+        <span class="tag">ResNet50</span>
+        <span class="tag">LSTM</span>
+        <span class="tag">GloVe</span>
+        <span class="tag">TTS</span>
+      </div>
+      <div class="project-meta" style="margin-top:12px;">
+        <div class="project-lang"><span class="lang-dot" style="background:#3572A5;"></span>Python</div>
+        <div class="project-stars">⭐ CV</div>
+      </div>
+    </div>
+  </a>
+
+  <!-- 7 -->
+  <a href="#" class="project-card" data-cat="aiml cv">
+    <div class="project-banner" style="background:linear-gradient(135deg,#1a1a0d,#1a3a1a);">🔧</div>
+    <div class="project-body">
+      <div class="project-name">PCB Defect Detection — YOLOv5</div>
+      <div class="project-desc">Custom YOLOv5 trained on 100+ PCBs across 6 defect classes. Severity scoring system by defect type + bounding box size. Tkinter GUI for real-time inspection — 18% accuracy gain over manual.</div>
+      <div class="project-tags">
+        <span class="tag">YOLOv5</span>
+        <span class="tag">OpenCV</span>
+        <span class="tag">Tkinter</span>
+        <span class="tag">PyTorch</span>
+      </div>
+      <div class="project-meta" style="margin-top:12px;">
+        <div class="project-lang"><span class="lang-dot" style="background:#3572A5;"></span>Python</div>
+        <div class="project-stars">⭐ CV</div>
+      </div>
+    </div>
+  </a>
+
+  <!-- 8 -->
+  <a href="#" class="project-card" data-cat="aiml cv">
+    <div class="project-banner" style="background:linear-gradient(135deg,#0d1a1a,#1a3a3a);">🦷</div>
+    <div class="project-body">
+      <div class="project-name">Oral Tissue Compatibility — Dental AI</div>
+      <div class="project-desc">CNN + Deep Belief Network hybrid for ultrasonography analysis. Gradient Boosting ensemble achieved 90.3% accuracy. Grad-CAM visualizations + real-time Streamlit interface for dentists.</div>
+      <div class="project-tags">
+        <span class="tag">CNN</span>
+        <span class="tag">Grad-CAM</span>
+        <span class="tag">TensorFlow</span>
+        <span class="tag">Streamlit</span>
+      </div>
+      <div class="project-meta" style="margin-top:12px;">
+        <div class="project-lang"><span class="lang-dot" style="background:#3572A5;"></span>Python</div>
+        <div class="project-stars">⭐ CV</div>
+      </div>
+    </div>
+  </a>
+
+  <!-- 9 -->
+  <a href="#" class="project-card" data-cat="aiml nlp">
+    <div class="project-banner" style="background:linear-gradient(135deg,#0d1117,#1a2a3a);">⚖️</div>
+    <div class="project-body">
+      <div class="project-name">Automated Legal Clause Checker</div>
+      <div class="project-desc">Multi-label classification of 41 legal clause types across 510 CUAD contracts. Compared LR, Random Forest, BERT, RoBERTa (best), LegalBERT. Weighted loss + threshold optimization for class imbalance.</div>
+      <div class="project-tags">
+        <span class="tag">LegalBERT</span>
+        <span class="tag">RoBERTa</span>
+        <span class="tag">BERT</span>
+        <span class="tag">Multi-label</span>
+      </div>
+      <div class="project-meta" style="margin-top:12px;">
+        <div class="project-lang"><span class="lang-dot" style="background:#3572A5;"></span>Python</div>
+        <div class="project-stars">⭐ NLP / ML</div>
+      </div>
+    </div>
+  </a>
+
+  <!-- 10 -->
+  <a href="#" class="project-card" data-cat="data">
+    <div class="project-banner" style="background:linear-gradient(135deg,#0d1a2e,#1a2a3a);">📊</div>
+    <div class="project-body">
+      <div class="project-name">Recruiting Funnel Analytics</div>
+      <div class="project-desc">Star-schema SQLite pipeline with SQL views for conversion rates, stage durations, and funnel drop-offs. CSV exports ready for Tableau. Graduates hire at 71% vs 61% — screening bottleneck identified at ~8 days.</div>
+      <div class="project-tags">
+        <span class="tag">SQLite</span>
+        <span class="tag">SQL</span>
+        <span class="tag">Tableau</span>
+      </div>
+      <div class="project-meta" style="margin-top:12px;">
+        <div class="project-lang"><span class="lang-dot" style="background:#e38c00;"></span>SQL</div>
+        <div class="project-stars">⭐ Data</div>
+      </div>
+    </div>
+  </a>
+
+</div>
+</section>
+
+<!-- PUBLICATIONS -->
+<section id="publications">
+  <div class="section-header">
+    <span class="section-number">03</span>
+    <h2>Publications</h2>
+    <div class="section-line"></div>
+  </div>
+
+    <p style="font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:32px;max-width:700px;">
+    4 papers. 3 conferences. 2 IEEE publication. 
+    I've taken ideas from whiteboard to peer-reviewed research, collaborating with professors and presenting findings to technical audiences worldwide.
+    </p>
+
+  <div class="projects-grid">
+
+    <a href="#" class="project-card">
+      <div class="project-banner" style="background:linear-gradient(135deg,#0d1117,#1a1a3e);">🛡️</div>
+      <div class="project-body">
+        <div class="project-name">Cognitive Defense: Cyber Attack Prediction</div>
+        <div class="project-desc">Co-authored IEEE paper on hybrid ML-based anomaly detection for cyber attack prediction and security design in ML models. Achieved 97% detection accuracy.</div>
+        <div class="project-tags">
+          <span class="tag">IEEE</span>
+          <span class="tag">ML</span>
+          <span class="tag">Cybersecurity</span>
+        </div>
+        <div class="project-meta" style="margin-top:12px;">
+          <div class="project-lang"><span class="lang-dot" style="background:#1DB954;"></span>IEEE · Jan 2024</div>
+        </div>
+      </div>
+    </a>
+
+    <a href="#" class="project-card">
+      <div class="project-banner" style="background:linear-gradient(135deg,#0c1a0c,#1a3a1a);">🏠</div>
+      <div class="project-body">
+        <div class="project-name">IoT-Based Smart Home Automation</div>
+        <div class="project-desc">Applied ML-driven optimization for sensor-controlled home automation reducing energy consumption by 150 kWh. Published in IEEE proceedings.</div>
+        <div class="project-tags">
+          <span class="tag">IEEE</span>
+          <span class="tag">IoT</span>
+          <span class="tag">ML Optimization</span>
+        </div>
+        <div class="project-meta" style="margin-top:12px;">
+          <div class="project-lang"><span class="lang-dot" style="background:#1DB954;"></span>IEEE · Oct 2023</div>
+        </div>
+      </div>
+    </a>
+
+    <a href="#" class="project-card">
+      <div class="project-banner" style="background:linear-gradient(135deg,#1a0d2e,#2a1a4a);">👶</div>
+      <div class="project-body">
+        <div class="project-name">Classification of Fetal Health Using ML</div>
+        <div class="project-desc">Presented a comparative study on fetal health classification at the ISTE Sponsored 9th International Conference on Latest Trends in Science, Engineering and Technology.</div>
+        <div class="project-tags">
+          <span class="tag">ICLTSET'23</span>
+          <span class="tag">ML</span>
+          <span class="tag">Healthcare AI</span>
+        </div>
+        <div class="project-meta" style="margin-top:12px;">
+          <div class="project-lang"><span class="lang-dot" style="background:#1DB954;"></span>ICLTSET · May 2023</div>
+        </div>
+      </div>
+    </a>
+
+    <a href="#" class="project-card">
+      <div class="project-banner" style="background:linear-gradient(135deg,#0d1a1a,#1a3a3a);">🦷</div>
+      <div class="project-body">
+        <div class="project-name">Ultrasonography Guided Oral Tissue Evaluation</div>
+        <div class="project-desc">Presented a deep learning approach to evaluate oral tissue compatibility for dental implants at the International Conference on Recent Trends in Commerce, Management, Science and Engineering.</div>
+        <div class="project-tags">
+          <span class="tag">ICRTCME</span>
+          <span class="tag">Deep Learning</span>
+          <span class="tag">Medical AI</span>
+        </div>
+        <div class="project-meta" style="margin-top:12px;">
+          <div class="project-lang"><span class="lang-dot" style="background:#1DB954;"></span>ICRTCME · Nov 2023</div>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+  <!-- RESUME -->
+  <section id="resume">
+    <div class="section-header">
+      <span class="section-number">04</span>
+      <h2>Resume</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="resume-section">
+      <div>
+        <div class="timeline-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--green)"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.38C18 2.51 16.49 1 14.62 1c-1.04 0-1.98.39-2.63 1.23l-.99 1.27-.99-1.27C9.36 1.39 8.42 1 7.38 1 5.51 1 4 2.51 4 4.62c0 .5.11.94.18 1.38H2c-1.1 0-1.99.9-1.99 2L0 19c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
+          Work Experience
+        </div>
+        <div class="timeline-item">
+        <div class="timeline-dot">🤖</div>
+        <div class="timeline-content">
+            <div class="tl-role">Artificial Intelligence Intern</div>
+            <div class="tl-company">ProjectPathAI</div>
+            <div class="tl-date">Jan 2026 – Present · Boston, MA</div>
+            <div class="tl-desc">Built multi-stage Corrective RAG pipeline with LangGraph, distributed AI workflows with Celery + Redis, and productionized behavioral inference with drift detection — reducing low-confidence errors by 5%.</div>
+            </div>
+        </div>
+        <div class="timeline-item">
+        <div class="timeline-dot">🔬</div>
+        <div class="timeline-content">
+            <div class="tl-role">Deep Learning Research Intern</div>
+            <div class="tl-company">National University of Singapore (NUS)</div>
+            <div class="tl-date">Jul 2023 – Aug 2023 · Singapore</div>
+            <div class="tl-desc">Designed a real-time image captioning system using ResNet–LSTM trained on 30K+ image-caption pairs with GloVe 300D embeddings. Achieved BLEU score 0.62 on Flickr30k at 50+ captions/sec.</div>
+            </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot">⚙️</div>
+          <div class="timeline-content">
+            <div class="tl-role">Artificial Intelligence Intern</div>
+            <div class="tl-company">VLOG Innovations</div>
+            <div class="tl-date">Jan 2023 – Mar 2023 · Chennai, India</div>
+            <div class="tl-desc">Trained YOLOv5 for real-time PCB defect detection — 18% accuracy improvement over manual inspection, 12% fewer false positives. Deployed across 100+ PCB samples with QA and R&D teams.</div>
+        </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="timeline-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--green)"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
+          Education
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-dot">🎓</div>
+            <div class="timeline-content">
+                <div class="tl-role">M.S. Artificial Intelligence</div>
+                <div class="tl-company">Northeastern University</div>
+                <div class="tl-date">Sep 2024 – Dec 2026 · Boston, MA</div>
+                <div class="tl-desc">Focusing ML, MLOps, DBMS, NLP, and AI. Actively seeking Summer 2025 internships and full-time AI/ML roles.</div>
+        </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-dot">🎓</div>
+            <div class="timeline-content">
+                <div class="tl-role">B.Tech AI & Data Science — Top of Class</div>
+                <div class="tl-company">Anna University</div>
+                <div class="tl-date">Sep 2020 – May 2024 · Chennai, India</div>
+                <div class="tl-desc">Graduated top of class. Coursework: Machine Learning, Deep Learning (TensorFlow), Computer Vision, Reinforcement Learning, Big Data Analytics, AI for Robotics, Data Visualization, Cloud Computing, OOP.</div>
+            </div>
+        </div>
+        <div class="timeline-item">
+<div class="timeline-dot">🏆</div>
+<div class="timeline-content">
+  <div class="tl-role">🥈 2nd Place — Boston 311 AI System</div>
+  <div class="tl-company">Google Cambridge</div>
+  <div class="tl-date">Dec 2025</div>
+  <div class="tl-desc">Presented a production-grade AI system to industry engineers at Google's Cambridge office. Fine-tuned sqlcoder-7b-2 with QLoRA for natural-language access to 1M+ city records.</div>
+</div>
+        </div>
+
+        <div class="resume-download-card">
+          <p>Want the full picture? Download my resume as a PDF — includes references, projects, and full timeline.</p>
+          <a href="DevadarshiniPazhanivelThenmozhiResume.pdf" download="DevadarshiniPazhanivelThenmozhiResume.pdf" target="_blank" class="btn-primary" style="display:inline-flex;" onclick="handleDownload(event)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            Download Resume
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="section-header">
+      <span class="section-number">05</span>
+      <h2>Contact</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="contact-grid">
+      <div class="contact-info">
+        <h3>Let's build something great together.</h3>
+        <p>Whether you have a project in mind, a job opportunity, or just want to chat about tech — my inbox is always open. I try to respond within 24 hours.</p>
+
+        <div class="contact-links">
+          <a href="mailto:pazhanivelthenmozh.d@northeastern.edu" class="contact-link">
+            <div class="contact-icon">📧</div>
+            <div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">Email</div>
+              <div>pazhanivelthenmozh.d@northeastern.edu</div>
+            </div>
+          </a>
+          <a href="https://github.com/Deva9102" target="_blank" class="contact-link">
+            <div class="contact-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">GitHub</div>
+              <div>Deva9102</div>
+            </div>
+          </a>
+          <a href="https://www.linkedin.com/in/devadarshinipazhthen/" target="_blank" class="contact-link">
+            <div class="contact-icon">💼</div>
+            <div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">LinkedIn</div>
+              <div>linkedin.com/in/devadarshinipazhthen</div>
+            </div>
+          </a>
+          <a href="tel:6176025527" class="contact-link">
+            <div class="contact-icon">📞</div>
+            <div>
+                <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">Phone</div>
+                <div>617-602-5527</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:20px;">Send a Message</div>
+        <div class="contact-form">
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-input" placeholder="Your name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" placeholder="you@email.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subject</label>
+            <input type="text" class="form-input" placeholder="What's this about?">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Message</label>
+            <textarea class="form-input" placeholder="Tell me about your project..."></textarea>
+          </div>
+          <button class="btn-primary" style="border:none;width:100%;justify-content:center;" onclick="sendMsg(this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            Send Message
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-left">© 2026 DPT · Built with ❤️ and too much coffee</div>
+  <div class="footer-right">Deva.ai</div>
+</footer>
+
+<script>
+  // Active nav
+  function setActive(el) {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // Scroll spy
+  const sections = ['home','about','projects','publications','resume','contact'];
+  window.addEventListener('scroll', () => {
+    let current = 'home';
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && window.scrollY >= el.offsetTop - 120) current = id;
+    });
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.classList.toggle('active', item.getAttribute('href') === '#' + current);
+    });
+  });
+
+  // Play button
+  let playing = false;
+  let progress = 42;
+  let timer;
+
+  function togglePlay() {
+    playing = !playing;
+    const icon = document.getElementById('playIcon');
+    if (playing) {
+      icon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      timer = setInterval(() => {
+        progress = Math.min(progress + 0.05, 100);
+        document.getElementById('progressFill').style.width = progress + '%';
+        const secs = Math.floor((progress / 100) * 245);
+        document.getElementById('currentTime').textContent =
+          Math.floor(secs/60) + ':' + String(secs%60).padStart(2,'0');
+        if (progress >= 100) { playing = false; icon.innerHTML = '<path d="M8 5v14l11-7z"/>'; clearInterval(timer); progress = 0; }
+      }, 200);
+    } else {
+      icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      clearInterval(timer);
+    }
+  }
+
+  // Filter chips
+    function filterChip(el, cat) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.project-card').forEach(card => {
+        const cats = card.dataset.cat.split(' ');
+        card.style.display = (cat === 'all' || cats.includes(cat)) ? 'block' : 'none';
+    });
+    }
+
+  // Download handler
+function handleDownload(e) {
+  const btn = e.currentTarget;
+  setTimeout(() => {
+    btn.innerHTML = '✓ Resume Downloaded!';
+    btn.style.background = '#1ed760';
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> Download Resume';
+      btn.style.background = '';
+    }, 2000);
+  }, 300);
+}
+
+  // Send message
+  function sendMsg(btn) {
+    btn.textContent = '✓ Message Sent!';
+    btn.style.background = '#1ed760';
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> Send Message';
+      btn.style.background = '';
+    }, 2500);
+  }
+
+  // Fade in sections on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.animationPlayState = 'running';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('section').forEach(s => {
+    s.style.animationPlayState = 'paused';
+    observer.observe(s);
+  });
+</script>
+</body>
+</html>
